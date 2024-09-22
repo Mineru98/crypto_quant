@@ -1,0 +1,6 @@
+pyupbit==0.2.34
+pyjwt==2.9.0
+python-dotenv==1.0.0
+backtrader==1.9.78.123
+matplotlib==3.9.2
+fire==0.6.0
