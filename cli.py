@@ -90,7 +90,7 @@ def load_data(year: int, month: int, load: bool = False) -> pd.DataFrame:
         df = fetch_minute_data(symbol, interval, start_date, end_date)
 
         if df.empty:
-            print("데이터를 가져오지 못했습니다.")
+            print("데이터가 비어 있습니다.")
             exit()
 
         print(f"데이터 가져오기 완료: {len(df)} 포인트")
