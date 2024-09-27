@@ -144,7 +144,7 @@ class Portfolio:
     def load_data(
         self,
         path: str = "notebooks/krw-btc-201709-202409.csv",
-        group: str = "minutes",
+        group: str = "day",
         begin_date: Optional[str] = None,
         end_date: Optional[str] = None,
     ):
@@ -255,7 +255,7 @@ class Portfolio:
     def run(
         self,
         path: str = "notebooks/krw-btc-201709-202409.csv",
-        group: str = "minutes",
+        group: str = "day",
         begin_date: Optional[str] = None,
         end_date: Optional[str] = None,
     ):

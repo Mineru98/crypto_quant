@@ -188,7 +188,7 @@ class Portfolio:
         path = st.sidebar.text_input(
             "데이터 파일 경로", "notebooks/krw-btc-201709-202409.csv"
         )
-        group = st.sidebar.selectbox("그룹화", ["minutes", "day"])
+        group = st.sidebar.selectbox("그룹화", ["day", "minutes"])
         begin_date = st.sidebar.text_input("시작 날짜 (YYYY-MM-DD)", "2023-09-01")
         end_date = st.sidebar.text_input("종료 날짜 (YYYY-MM-DD)", "2024-08-31")
 
@@ -248,17 +248,8 @@ class Portfolio:
                     self._calculate_atr()
                 elif indicator == "VWAP":
                     self._calculate_vwap()
-                elif indicator.startswith("Fib_"):
-                    if indicator.endswith("_23.6%"):
-                        self._calculate_fibonacci(level="23.6%")
-                    elif indicator.endswith("_38.2%"):
-                        self._calculate_fibonacci(level="38.2%")
-                    elif indicator.endswith("_50.0%"):
-                        self._calculate_fibonacci(level="50.0%")
-                    elif indicator.endswith("_61.8%"):
-                        self._calculate_fibonacci(level="61.8%")
-                    elif indicator.endswith("_100%"):
-                        self._calculate_fibonacci(level="100%")
+                elif indicator.startswith("Fib_") and indicator.endswith("%"):
+                    self._calculate_fibonacci()
                 elif indicator == "ADX":
                     self._calculate_adx()
 
