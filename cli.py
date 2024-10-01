@@ -7,6 +7,7 @@ import backtrader as bt
 import fire
 import pandas as pd
 import pyupbit
+from tqdm import tqdm
 
 
 class PrintClose(bt.Strategy):
@@ -66,37 +67,32 @@ def fetch_minute_data(ticker, interval, start, end):
         return pd.DataFrame()
 
 
-def load_data(year: int, month: int, load: bool = False) -> pd.DataFrame:
+def load_data(ticker: str, year: int, month: int, load: bool = False) -> pd.DataFrame:
     """
     데이터를 로드하는 공통 함수
 
+    :param ticker: 거래 심볼 (예: "BTC")
     :param year: 백테스팅할 연도
     :param month: 백테스팅할 월 (1-12)
     :return: pandas DataFrame
     """
-    symbol = "KRW-BTC"
+    symbol = "KRW-" + ticker
     interval = "minute1"
     start_date = datetime(year, month, 1)
     _, last_day = calendar.monthrange(year, month)
     end_date = datetime(year, month, last_day, 23, 59, 59)
-    filename = f"KRW-BTC_{year}{month:02d}_minute.csv"
+    filename = f"krw-{ticker}_{year}{month:02d}.csv"
 
     if os.path.exists(filename):
-        print(f"파일 '{filename}'이 존재합니다. 파일에서 데이터를 불러옵니다.")
         if load:
             df = pd.read_csv(filename, index_col=0, parse_dates=True)
     else:
-        print("파일이 존재하지 않습니다. API를 통해 데이터를 가져옵니다.")
         df = fetch_minute_data(symbol, interval, start_date, end_date)
 
         if df.empty:
             print("데이터가 비어 있습니다.")
-            exit()
-
-        print(f"데이터 가져오기 완료: {len(df)} 포인트")
-        df.to_csv(filename)  # 데이터 저장
-        print(f"데이터가 '{filename}' 파일으로 저장되었습니다.")
-
+        else:
+            df.to_csv(filename)  # 데이터 저장
     if load:
         return df
     else:
@@ -104,23 +100,45 @@ def load_data(year: int, month: int, load: bool = False) -> pd.DataFrame:
 
 
 class Backtest:
-    def save(self, year: int, month: int):
+    def range_save(
+        self,
+        ticker: str,
+        start_year: int = 2017,
+        start_month: int = 1,
+        end_year: int = 2024,
+        end_month: int = 9,
+    ):
         """
         데이터를 저장하는 함수
 
         :param year: 백테스팅할 연도
         :param month: 백테스팅할 월 (1-12)
         """
-        load_data(year, month)
+        rows = []
+        for year in range(start_year, end_year + 1):
+            for month in range(start_month, end_month + 1):
+                rows.append((year, month))
 
-    def run(self, year: int, month: int):
+        for row in tqdm(rows):
+            load_data(ticker, row[0], row[1])
+
+    def save(self, ticker: str, year: int, month: int):
+        """
+        데이터를 저장하는 함수
+
+        :param year: 백테스팅할 연도
+        :param month: 백테스팅할 월 (1-12)
+        """
+        load_data(ticker, year, month)
+
+    def run(self, ticker: str, year: int, month: int):
         """
         백테스팅을 실행하는 함수
 
         :param year: 백테스팅할 연도
         :param month: 백테스팅할 월 (1-12)
         """
-        df = load_data(year, month, load=True)
+        df = load_data(ticker, year, month, load=True)
 
         # 백테스터 초기화
         cerebro = bt.Cerebro()
