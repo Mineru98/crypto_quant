@@ -9,6 +9,7 @@ setup(
         "pyupbit>=0.2.34",
         "pyjwt>=2.0.0",
         "python-dotenv",
+        "groq",
     ],
     author="iamiks",
     author_email="mineru664500@gmail.com",

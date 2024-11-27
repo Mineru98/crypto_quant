@@ -15,7 +15,9 @@ class Account:
             target_coin (List[str], optional): 투자 종목. Defaults to ["KRW-DOGE"].
         """
         load_dotenv()
-        self.client = Upbit(os.environ["API_ACCESS_KEY"], os.environ["API_SECRET_KEY"])
+        self.client = Upbit(
+            os.environ["UPBIT_API_ACCESS_KEY"], os.environ["UPBIT_API_SECRET_KEY"]
+        )
         self.__queue = []
         self.__target_coin = target_coin
         self.__position = Position()

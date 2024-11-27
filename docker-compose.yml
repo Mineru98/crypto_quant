@@ -13,30 +13,5 @@ services:
       - crypto_mysql_db:/var/lib/mysql
     ports:
       - "3306:3306"
-  jupyter:
-    build: .
-    container_name: jupyter-pyspark
-    ports:
-      - "8888:8888"
-    environment:
-      - PYSPARK_PYTHON=python3
-      - PYSPARK_DRIVER_PYTHON=jupyter
-      - PYSPARK_DRIVER_PYTHON_OPTS="notebook --ip='*' --port=8888 --no-browser --allow-root"
-    volumes:
-      - ./notebooks:/home/jovyan/work
-    command: start-notebook.sh --NotebookApp.token=''
-
-  spark:
-    image: bitnami/spark:latest
-    container_name: spark-master
-    environment:
-      - SPARK_MODE=master
-      - SPARK_RPC_AUTHENTICATION_ENABLED=no
-      - SPARK_RPC_ENCRYPTION_ENABLED=no
-      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
-      - SPARK_SSL_ENABLED=no
-    ports:
-      - "7077:7077"
-      - "8080:8080"
 volumes:
   crypto_mysql_db: {}

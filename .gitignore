@@ -163,3 +163,4 @@ cython_debug/
 *.csv
 *.csv.gz
 .DS_Store
+test*.py
