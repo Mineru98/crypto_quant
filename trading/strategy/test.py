@@ -3,8 +3,7 @@ from typing import List
 import pandas as pd
 
 from trading.module import Order
-
-from .base import Strategy
+from trading.strategy.base import Strategy
 
 
 class TestStrategy(Strategy):
@@ -24,8 +23,8 @@ class TestStrategy(Strategy):
         >>> orders = strategy.execute(state_dict)
     """
 
-    def __init__(self, config, ready=True):
-        super().__init__(config, ready)
+    def __init__(self, config={}, ready=True):
+        super().__init__(config, ready=ready)
 
     def execute(self, state_dict) -> List[Order]:
         orders = []

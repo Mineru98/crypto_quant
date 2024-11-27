@@ -5,10 +5,9 @@ from typing import List, Type
 
 from .base import Strategy
 from .test import TestStrategy
-from .test2 import Test2Strategy
 
 
-def print_all_strategies() -> List[Type[Strategy]]:
+def get_all_strategies() -> List[Type[Strategy]]:
     """trading/strategy 디렉토리에 있는 모든 전략 클래스를 반환합니다.
 
     Returns:
@@ -35,14 +34,5 @@ def print_all_strategies() -> List[Type[Strategy]]:
                     and issubclass(obj, Strategy)
                     and obj != Strategy
                 ):
-                    strategies.append(obj)
-
-    print("=== 사용 가능한 전략 목록 ===")
-    idx = 1
-    for strategy in strategies:
-        if hasattr(strategy, "ready") and strategy.ready:
-            print(f"{idx}. {strategy.__name__}")
-            if strategy.__doc__:
-                doc_first_line = strategy.__doc__.split("\n")[0].strip()
-                print(f"   설명: {doc_first_line}")
-            idx += 1
+                    strategies.append(obj())
+    return strategies

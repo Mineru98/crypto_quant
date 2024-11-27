@@ -13,6 +13,10 @@ class Strategy(ABC):
         self._ready = ready
 
     @property
+    def __name__(self):
+        return self.__class__.__name__
+
+    @property
     def ready(self):
         return self._ready
 
