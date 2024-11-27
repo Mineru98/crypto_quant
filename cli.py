@@ -63,7 +63,14 @@ class Backtest:
                 {"role": "system", "content": "you are a helpful assistant."},
                 {
                     "role": "user",
-                    "content": f"### 요청 사항\n\n- 다음 레퍼런스 코드를 보고 {name} 전략을 구현해줘.\n- 전략 이름은 {name}이고, 설명은 {description}이야.\n\n### 레퍼런스 코드\n\n{reference_code}",
+                    "content": f"""### 요청 사항
+- 다음 레퍼런스 코드를 보고 {name} 전략을 구현해줘.
+- 전략 이름은 {name}이고, 설명은 {description}이야.
+
+### 레퍼런스 코드
+```python
+{reference_code}
+```""",
                 },
             ],
             model="llama-3.2-90b-vision-preview",

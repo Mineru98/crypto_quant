@@ -164,3 +164,4 @@ cython_debug/
 *.csv.gz
 .DS_Store
 test*.py
+!trading/strategy/test*.py
