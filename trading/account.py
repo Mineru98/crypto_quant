@@ -1,25 +1,28 @@
 import os
-from typing import Any, Dict, List
+from collections import deque
+from typing import Any, Dict
 
 from dotenv import load_dotenv
 from pyupbit import Upbit
 
-from trading.module import Position
+from trading.module import Position, get_active_targets
 
 
 class Account:
-    def __init__(self, target_coin: List[str] = ["KRW-DOGE"]):
+    def __init__(self):
         """계좌 초기화
 
         Args:
             target_coin (List[str], optional): 투자 종목. Defaults to ["KRW-DOGE"].
         """
         load_dotenv()
+        # 업비트 클라이언트 정의
         self.client = Upbit(
             os.environ["UPBIT_API_ACCESS_KEY"], os.environ["UPBIT_API_SECRET_KEY"]
         )
-        self.__queue = []
-        self.__target_coin = target_coin
+        self.__queue = deque()
+        # 현재 active 상태 목록
+        self.__target_coin = get_active_targets()
         self.__position = Position()
 
     @property

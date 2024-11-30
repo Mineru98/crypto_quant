@@ -11,7 +11,7 @@ class Engine:
         self._strategy_config = strategy_config
         self._strategy: Strategy = strategy(config=strategy_config)
         self._df = self._strategy.update(chart_data)
-        self._account = Account(target_coin=["KRW-DOGE"])
+        self._account = Account()
         self._broker = Broker(self._account)  # 거래 실행 모듈 계좌 사용
         self._logger = Logger()  # 백테스팅 정보 로깅)
 
