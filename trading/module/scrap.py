@@ -9,17 +9,16 @@ from tqdm import tqdm
 now = datetime.now()
 
 COIN_MAP = {
-    # "KRW-BTC": ("2017-09-26", "2024-10-28"),
-    "KRW-BTC": ("2024-10-28", now.strftime("%Y-%m-%d")),
-    "KRW-ETH": ("2017-09-26", now.strftime("%Y-%m-%d")),
-    "KRW-BCH": ("2017-09-26", now.strftime("%Y-%m-%d")),
-    "KRW-ETC": ("2017-09-26", now.strftime("%Y-%m-%d")),
-    "KRW-XRP": ("2017-09-26", now.strftime("%Y-%m-%d")),
-    "KRW-DOGE": ("2021-02-25", now.strftime("%Y-%m-%d")),
-    "KRW-SOL": ("2021-10-16", now.strftime("%Y-%m-%d")),
-    "KRW-AVAX": ("2022-02-09", now.strftime("%Y-%m-%d")),
-    "KRW-SHIB": ("2023-01-19", now.strftime("%Y-%m-%d")),
-    "KRW-SUI": ("2023-05-05", now.strftime("%Y-%m-%d")),
+    "KRW-BTC": ("2024-11-29", now.strftime("%Y-%m-%d")),
+    "KRW-ETH": ("2024-11-29", now.strftime("%Y-%m-%d")),
+    "KRW-BCH": ("2024-11-29", now.strftime("%Y-%m-%d")),
+    "KRW-ETC": ("2024-11-29", now.strftime("%Y-%m-%d")),
+    "KRW-XRP": ("2024-11-29", now.strftime("%Y-%m-%d")),
+    "KRW-DOGE": ("2024-11-29", now.strftime("%Y-%m-%d")),
+    "KRW-SOL": ("2024-11-29", now.strftime("%Y-%m-%d")),
+    "KRW-AVAX": ("2024-11-29", now.strftime("%Y-%m-%d")),
+    "KRW-SHIB": ("2024-11-29", now.strftime("%Y-%m-%d")),
+    "KRW-SUI": ("2024-11-29", now.strftime("%Y-%m-%d")),
 }
 
 
