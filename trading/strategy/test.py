@@ -1,6 +1,6 @@
-from typing import List
+from typing import Dict, List, Literal
 
-import pandas as pd
+import polars as pl
 
 from trading.module import Order
 from trading.strategy.base import Strategy
@@ -9,13 +9,14 @@ from trading.strategy.base import Strategy
 class TestStrategy(Strategy):
     """골든 크로스/데드 크로스 기반의 매매 전략
 
-    5일 이동평균선이 20일 이동평균선을 상향 돌파할 때 매수(골든 크로스),
+    n일 이동평균선이 m일 이동평균선을 상향 돌파할 때 매수(골든 크로스),
     하향 돌파할 때 매도(데드 크로스)하는 전략을 구현합니다.
+    현재 잔고 기준으로 살 수 있는 최대 수량으로 주문합니다.
 
     Attributes:
         ready (bool): 전략 실행 준비 상태
-        _config (dict): 전략 설정 파라미터
-        _df (pd.DataFrame): 차트 데이터
+        _config (Dict[Literal["short_ma", "long_ma"], int]): 전략 설정 파라미터
+        _df (pl.DataFrame): 차트 데이터
 
     Example:
         >>> config = {"short_ma": 5, "long_ma": 20}
@@ -23,32 +24,70 @@ class TestStrategy(Strategy):
         >>> orders = strategy.execute(state_dict)
     """
 
-    def __init__(self, config={}, ready=True):
+    def __init__(
+        self,
+        config: Dict[Literal["short_ma", "long_ma"], int] = {},
+        ready=True,
+    ):
         super().__init__(config, ready=ready)
 
-    def execute(self, state_dict) -> List[Order]:
-        orders = []
-        price = state_dict["price"]
-        ma5 = state_dict["ma5"]
-        ma20 = state_dict["ma20"]
-        position = state_dict.get("position", 0)
+    def description(self) -> Dict[str, str]:
+        short_ma = self._config["short_ma"]
+        long_ma = self._config["long_ma"]
 
-        if ma5 > ma20 and position == 0:
-            # Buy signal
-            orders.append(Order(action="buy", quantity=10, price=price))
-        elif ma5 < ma20 and position == 1:
-            # Sell signal
-            orders.append(Order(action="sell", quantity=10, price=price))
+        return {
+            "close": "가격",
+            f"ma{short_ma}": f"{short_ma}일 이동평균",
+            f"ma{long_ma}": f"{long_ma}일 이동평균",
+            "변동성": "변동성",
+        }
+
+    def execute(self, state_dict: Dict[str, float]) -> List[Order]:
+        orders = []
+        ticker_name = state_dict["ticker_name"]
+        price = state_dict["price"]  # 현재 가격
+        ma_n = state_dict[f"ma{self._config['short_ma']}"]  # n일 이동평균선
+        ma_m = state_dict[f"ma{self._config['long_ma']}"]  # m일 이동평균선
+        position = state_dict.get("position", False)  # 해당 종목 보유 상태
+        balance = state_dict.get("balance", 0)  # 남은 잔고
+        quantity = balance // price  # 주문 수량(최대)
+
+        # 매수 타이밍
+        if ma_n > ma_m and not position:
+            if balance >= price * quantity:
+                orders.append(
+                    Order(
+                        action="buy",
+                        quantity=quantity,
+                        price=price,
+                        ticker_name=ticker_name,
+                    )
+                )
+        # 매도 타이밍
+        elif ma_n < ma_m and position:
+            orders.append(
+                Order(
+                    action="sell",
+                    quantity=quantity,
+                    price=price,
+                    ticker_name=ticker_name,
+                )
+            )
 
         return orders
 
-    def update(self, chart_data: pd.DataFrame) -> pd.DataFrame:
-        short_ma = 5
-        long_ma = 20
+    def update(self, df: pl.DataFrame) -> pl.DataFrame:
+        short_ma = self._config["short_ma"]
+        long_ma = self._config["long_ma"]
 
-        chart_data[f"ma{short_ma}"] = (
-            chart_data["close"].rolling(window=short_ma).mean()
+        df = df.with_columns(
+            [
+                pl.col("close")
+                .rolling_mean(window_size=short_ma)
+                .alias(f"ma{short_ma}"),
+                pl.col("close").rolling_mean(window_size=long_ma).alias(f"ma{long_ma}"),
+            ]
         )
-        chart_data[f"ma{long_ma}"] = chart_data["close"].rolling(window=long_ma).mean()
-        self._df = chart_data
-        return chart_data
+        df["변동성"] = (df["high"] - df["low"]) / df["open"] * 100
+        self._df = df
+        return df

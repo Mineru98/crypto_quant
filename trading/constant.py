@@ -1,6 +1,6 @@
 TEMPLATE_CLASS_NAME = """from typing import List
 
-import pandas as pd
+import polars as pl
 
 from trading.module import Order
 from trading.strategy.base import Strategy
@@ -28,6 +28,14 @@ class {class_name}(Strategy):
     def execute(self, state_dict) -> List[Order]:
         pass
 
-    def update(self, chart_data: pd.DataFrame) -> pd.DataFrame:
+    def update(self, chart_data: pl.DataFrame) -> pl.DataFrame:
         pass
 """
+
+
+def PALETTE():
+    colors = ["gray", "red", "yellow", "green"]
+    i = 0
+    while True:
+        yield colors[i]
+        i = (i + 1) % len(colors)

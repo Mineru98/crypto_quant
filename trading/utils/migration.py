@@ -15,8 +15,6 @@ DB_PORT = os.getenv("DB_PORT")
 DB_NAME = os.getenv("DB_NAME")
 DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
-# PARQUET_FILE = "data/KRW-BTC_2024-09-25_2024-11-29.parquet"
-# TABLE_NAME = "btc"
 
 
 def connect_to_db():
@@ -38,7 +36,7 @@ def connect_to_db():
 # 2. 테이블 생성 (없으면 생성)
 def create_table_if_not_exists(conn, table_name: str):
     create_table_query = f"""
-    CREATE TABLE IF NOT EXISTS {table_name} (
+    CREATE TABLE IF NOT EXISTS \"{table_name}\" (
         date TIMESTAMP NOT NULL,
         open NUMERIC,
         high NUMERIC,
@@ -47,10 +45,13 @@ def create_table_if_not_exists(conn, table_name: str):
         volume REAL,
         PRIMARY KEY (date)
     );
-    SELECT create_hypertable('{table_name}', 'date', if_not_exists => TRUE, create_default_indexes => FALSE);
+    """
+    create_hypertable_query = f"""
+    SELECT create_hypertable('\"{table_name}\"', 'date', if_not_exists => TRUE, create_default_indexes => FALSE);
     """
     with conn.cursor() as cursor:
         cursor.execute(create_table_query)
+        cursor.execute(create_hypertable_query)
         conn.commit()
         print(f"Table '{table_name}' is ready.")
 
@@ -58,7 +59,7 @@ def create_table_if_not_exists(conn, table_name: str):
 # 3. Parquet 데이터 읽기
 def read_parquet(file_path):
     try:
-        df = pl.read_parquet(file_path)
+        df = pl.read_parquet(file_path).unique(subset=["Date"])
         print(f"Loaded {len(df)} rows from {file_path}")
         return df
     except Exception as e:
@@ -69,7 +70,7 @@ def read_parquet(file_path):
 # 4. 데이터 삽입
 def insert_data(conn, dataframe, table_name: str):
     insert_query = f"""
-    INSERT INTO {table_name} (date, open, high, low, close, volume)
+    INSERT INTO \"{table_name}\" (date, open, high, low, close, volume)
     VALUES %s
     """
     values = [

@@ -1,21 +1,48 @@
-from typing import List
+from collections import deque
+from typing import Dict, List, Literal
 
-from trading.module import Order, Transaction
+import polars as pl
+
+from trading.account import Account
+from trading.module import MarketInfo, Order, Transaction
 
 
 class Broker:
-    def __init__(self, account, market_info):
-        pass
+    """실제 거래 모듈
+
+    별도로 추상화를 하여 live와 백테스팅 분리가 필요
+    """
+
+    def __init__(
+        self, account: Account, market_info: Dict[Literal["slippage", "fee"], float]
+    ):
+        self.__account = account
+        self.__market_info = MarketInfo(
+            slippage=market_info["slippage"], fee=market_info["fee"]
+        )
+        self.__queue: deque[Order] = deque()
+        self.transactions: List[Transaction] = []
+
+    def execute_orders(
+        self,
+        data: Dict[Literal["high", "open", "close", "low", "volume", "value"], float],
+    ) -> List[Transaction]:
+        for _ in range(len(self.__queue)):
+            # 큐 pop
+            order = self.__queue.popleft()
+            # 수수료 적용
+            order.fee = self.__market_info.fee
+            # 체결 가격(이때, 미래 참조를 하게 되는 것이므로 미래시점 체결)
+            order.realized_price = data["close"]
+
+            # 예상 구매 금액
+            price = data["close"] * order.quantity * (1 + self.__market_info.slippage)
+            # 수수료 금액
+            fee = price * order.fee
+            # 체결 처리
+            self.__account.deposit(price * (1 if order.action == "buy" else -1) - fee)
 
     def place_order(self, actions: List[Order]):
-        # 주문 queue에 넣어서 engine에서 주문 queue에 있는건 처리하는 방식(미래에 체결되게)
+        # 다음 tick에 체결되는 주문들을 queue에 넣어둠
         for order in actions:
-            # validation check
-            self._qeueue.put(order)
-
-    def execute_orders(self, data) -> List[Transaction]:
-        # data: Engine에서 체결에 필요한 정보(가격 등..)
-        transactions = []
-        # queue에 쌓여있는 주문들 다 가져와서 처리
-        # 청산시 차액만큼 deposit 이용해 Position 및 계좌 잔량 증감
-        return transactions
+            self.__queue.append(order)

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import Dict, List
 
-import pandas as pd
+import polars as pl
 
 from trading.module import Order
 
@@ -21,9 +21,13 @@ class Strategy(ABC):
         return self._ready
 
     @abstractmethod
+    def description(self) -> Dict[str, str]:
+        pass
+
+    @abstractmethod
     def execute(self, state_dict) -> List[Order]:
         pass
 
     @abstractmethod
-    def update(self, chart_data: pd.DataFrame) -> pd.DataFrame:
+    def update(self, chart_data: pl.DataFrame) -> pl.DataFrame:
         pass
