@@ -5,11 +5,14 @@ import re
 from typing import List
 
 import fire
+import psycopg2
 from dotenv import load_dotenv
 from groq import Groq
 
 from trading.constant import TEMPLATE_CLASS_NAME
-from trading.strategy import get_all_strategies
+from trading.engine import Engine
+from trading.strategy import get_all_strategies, search_strategies
+from trading.utils.loader import search_db_data
 
 
 class Backtest:
@@ -18,6 +21,16 @@ class Backtest:
         self.client = Groq(
             api_key=os.environ.get("GROQ_API_KEY"),
         )
+        try:
+            self.db = psycopg2.connect(
+                host=os.environ.get("DB_HOST"),
+                port=os.environ.get("DB_PORT"),
+                dbname=os.environ.get("DB_NAME"),
+                user=os.environ.get("DB_USER"),
+                password=os.environ.get("DB_PASSWORD"),
+            )
+        except Exception as e:
+            print(f"Error connecting to TimescaleDB: {e}")
 
     def __recommend_strategy(self, strategies: List[str]):
         strategies = "\n- ".join(strategies)
@@ -91,13 +104,28 @@ class Backtest:
         print("UPBIT_API_ACCESS_KEY", os.environ["UPBIT_API_ACCESS_KEY"])
         print("GROQ_API_KEY", os.environ["GROQ_API_KEY"])
 
-    def run(self):
+    def run(self, name: str, sd: str, ed: str, it: str, tn: str):
         """백테스트를 실행합니다.
 
         Example:
             $ python cli.py run
         """
-        pass
+        strategies = get_all_strategies()
+        _strategies = list(map(lambda x: x.__name__, strategies))
+        if name in _strategies:
+            strategy = search_strategies(name)
+            df = search_db_data(self.db, sd, ed, it, tn)
+            engine = Engine(
+                strategy=strategy,
+                chart_data=df,
+                strategy_config={"short_ma": 5, "long_ma": 20},
+                market_info={"slippage": 0.01, "fee": 0.0005},
+                initial_margin=1000000.0,
+            )
+            engine.run(ticker_name=tn)
+            engine.get_result()
+        else:
+            print(f"전략 {name}은 존재하지 않습니다.")
 
     def show(self):
         """만들어 진 전략들을 보여줍니다.

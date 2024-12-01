@@ -1,5 +1,11 @@
 # crypto_quant
 
+## 실행
+
+```bash
+python cli.py run --name=TestStrategy --sd=2024-01-01 --ed=2024-11-30 --it=1day --tn=KRW-AVAX
+```
+
 ## 메타데이터 정보(분봉 데이터)
 
 - Unnamed: 0(YYYY-MM-DD HH:MM:SS)

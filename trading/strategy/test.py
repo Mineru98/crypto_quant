@@ -56,7 +56,11 @@ class TestStrategy(Strategy):
         if position:
             quantity = count
         else:
-            quantity = balance // price if balance >= price else 0  # 주문 수량(최대)
+            quantity = (
+                balance / price
+                if price >= 1000000
+                else balance // price if balance >= price else 0
+            )  # 주문 수량(최대)
 
         if ma_n is None or ma_m is None:
             return orders
@@ -64,7 +68,12 @@ class TestStrategy(Strategy):
         if ma_n > ma_m and not position:
             price = price * (1 + slippage)
             fee = price * fee
-            if balance >= (price * quantity + fee):
+            while balance < (price * quantity + fee) and quantity > 0:
+                if quantity >= 1:
+                    quantity = quantity - 1
+                else:
+                    quantity = quantity * 0.99
+            if quantity > 0:
                 orders.append(
                     Order(
                         action="buy",
