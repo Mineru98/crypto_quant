@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, Literal
 
 
 class Position:
@@ -11,7 +11,7 @@ class Position:
         ticker_name: str,
         count: float,
         amount: float,
-        current_price: float = 0,
+        current_price: float = 0.0,
     ):
         """투자종목 추가
 
@@ -26,6 +26,31 @@ class Position:
             "count": count,
             "amount": amount,
         }
+
+    def update(
+        self,
+        amount: float,
+        count: float,
+        ticker_name: str,
+        action: Literal["buy", "sell"],
+    ):
+        """투자종목 최신화
+
+        Args:
+            amount (float): 누적 매수 금액
+            count (float): 보유 수량
+            ticker_name (str): 종목명
+            action (Literal["buy", "sell"]): 거래 종류
+        """
+        if action == "buy":
+            self.__target_coin[ticker_name]["amount"] = amount
+            self.__target_coin[ticker_name]["count"] = count
+        else:
+            self.__target_coin[ticker_name]["amount"] -= (
+                self.__target_coin[ticker_name]["amount"]
+                / self.__target_coin[ticker_name]["count"]
+            ) * count
+            self.__target_coin[ticker_name]["count"] -= count
 
     def update_price(self, price: float, ticker_name: str):
         """투자종목 최신화
@@ -48,6 +73,12 @@ class Position:
     def balance(self, value: float):
         self.__balance = value
 
+    def has_position(self, ticker_name: str) -> bool:
+        return self.__target_coin[ticker_name]["count"] > 0
+
+    def get_count(self, ticker_name: str) -> float:
+        return self.__target_coin[ticker_name]["count"]
+
     def summary(self) -> Dict[str, Any]:
         """포트폴리오 요약
 
@@ -59,11 +90,14 @@ class Position:
             info["current_price"] * info["count"]
             for info in self.__target_coin.values()
         )
-
         return {
             "총 매수": total_purchase,
             "평가손익": total_evaluation,
-            "총 평가": total_purchase + total_evaluation,
-            "수익률": (total_evaluation - total_purchase) / total_purchase * 100,
+            "총 평가": total_purchase + total_evaluation + self.balance,
+            "수익률": (
+                (total_evaluation - total_purchase) / total_purchase * 100
+                if total_purchase != 0
+                else 0
+            ),
             "현금 잔액": self.balance,
         }

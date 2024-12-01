@@ -8,7 +8,7 @@ from trading.module import Order
 
 class Strategy(ABC):
     def __init__(self, config, ready=False):
-        self.config = config
+        self._config = config
         self._df = None
         self._ready = ready
 

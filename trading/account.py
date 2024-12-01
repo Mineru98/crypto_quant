@@ -33,6 +33,10 @@ class Account:
         # 현재 active 상태 목록
         self.__target_coin = get_active_targets()
         self.__position = Position()
+        for coin in self.__target_coin:
+            self.__position.add(
+                coin, self.client.get_balance(coin), self.client.get_amount(coin)
+            )
 
     @property
     def balance(self) -> float:
@@ -47,28 +51,34 @@ class Account:
             return self.__balance
 
     def has_position(self, ticker_name: str) -> bool:
-        return self.__position.info()[ticker_name]["count"] > 0
+        return self.__position.has_position(ticker_name)
+
+    def get_count(self, ticker_name: str) -> float:
+        return self.__position.get_count(ticker_name)
 
     def info(self) -> Dict[str, Any]:
         # 현금 잔고 로드
         self.__position.balance = self.balance
-        # 매수 코인 잔고 현황 로드
-        for coin in self.__target_coin:
-            self.__position.add(
-                coin, self.client.get_balance(coin), self.client.get_amount(coin)
-            )
         # 지갑 상황 반환
         return self.__position.summary()
 
     def update(
         self,
-        price_info: Dict[
-            Literal["high", "open", "close", "low", "volume", "value"], float
-        ],
+        amount: float,
+        count: float,
+        ticker_name: str,
+        action: Literal["buy", "sell"],
+    ):
+        # 투자종목 최신화
+        self.__position.update(amount, count, ticker_name, action)
+
+    def update_price(
+        self,
+        price: float,
         ticker_name: str,
     ):
         # 내 잔고 가치 최신화
-        self.__position.update_price(price_info["close"], ticker_name)
+        self.__position.update_price(price, ticker_name)
 
     def deposit(self, amt: float):
         """잔고 증감

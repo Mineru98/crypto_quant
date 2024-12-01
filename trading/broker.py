@@ -23,13 +23,24 @@ class Broker:
         self.__queue: deque[Order] = deque()
         self.transactions: List[Transaction] = []
 
+    @property
+    def fee(self):
+        return self.__market_info.fee
+
+    @property
+    def slippage(self):
+        return self.__market_info.slippage
+
     def execute_orders(
         self,
-        data: Dict[Literal["high", "open", "close", "low", "volume", "value"], float],
+        data: Dict[
+            Literal["Date", "high", "open", "close", "low", "volume", "value"], float
+        ],
     ) -> List[Transaction]:
         for _ in range(len(self.__queue)):
             # 큐 pop
             order = self.__queue.popleft()
+            copy_order = order
             # 수수료 적용
             order.fee = self.__market_info.fee
             # 체결 가격(이때, 미래 참조를 하게 되는 것이므로 미래시점 체결)
@@ -39,8 +50,17 @@ class Broker:
             price = data["close"] * order.quantity * (1 + self.__market_info.slippage)
             # 수수료 금액
             fee = price * order.fee
+            self.__account.update(
+                price, order.quantity, order.ticker_name, order.action
+            )
             # 체결 처리
-            self.__account.deposit(price * (1 if order.action == "buy" else -1) - fee)
+            if order.action == "buy":
+                if self.__account.balance >= price - fee:
+                    self.__account.deposit(-price - fee)
+                else:
+                    self.__queue.append(copy_order)
+            else:
+                self.__account.deposit(price - fee)
 
     def place_order(self, actions: List[Order]):
         # 다음 tick에 체결되는 주문들을 queue에 넣어둠

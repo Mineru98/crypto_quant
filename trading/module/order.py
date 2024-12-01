@@ -53,3 +53,6 @@ class Order:
     @fee.setter
     def fee(self, fee: float):
         self.__fee = fee
+
+    def __str__(self) -> str:
+        return f"action : {self.action}, quantity : {self.quantity}, ticker_name : {self.ticker_name}, order_price : {self.order_price}, realized_price : {self.realized_price}, fee : {self.fee}"

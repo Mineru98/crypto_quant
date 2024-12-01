@@ -33,9 +33,4 @@ class {class_name}(Strategy):
 """
 
 
-def PALETTE():
-    colors = ["gray", "red", "yellow", "green"]
-    i = 0
-    while True:
-        yield colors[i]
-        i = (i + 1) % len(colors)
+PALETTE = ["gray", "yellow", "red", "green"]
