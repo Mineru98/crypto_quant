@@ -29,14 +29,16 @@ class Account:
         self.client = Upbit(
             os.environ["UPBIT_API_ACCESS_KEY"], os.environ["UPBIT_API_SECRET_KEY"]
         )
-        self.__queue = deque()
         # 현재 active 상태 목록
         self.__target_coin = get_active_targets()
         self.__position = Position()
         for coin in self.__target_coin:
-            self.__position.add(
-                coin, self.client.get_balance(coin), self.client.get_amount(coin)
-            )
+            if self.__is_live:
+                self.__position.add(
+                    coin, self.client.get_balance(coin), self.client.get_amount(coin)
+                )
+            else:
+                self.__position.add(coin, 0.0, 0.0)
 
     @property
     def balance(self) -> float:
