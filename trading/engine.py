@@ -21,6 +21,7 @@ class Engine:
         market_info: Dict[Literal["slippage", "fee"], float],
         initial_margin: float,
         is_live: bool = False,
+        is_progress: bool = False,
     ):
         """엔진 초기화
 
@@ -29,7 +30,9 @@ class Engine:
             chart_data (pl.DataFrame): 차트 데이터
             strategy_config (Dict[Literal["short_ma", "long_ma"], int]): 전략 설정 파라미터
             market_info (Dict[Literal["slippage", "fee"], float]): 슬리피지와 거래수수료 파라미터
+            initial_margin (float): 초기 투자금
             is_live (bool, optional): 실제 거래 여부. Defaults to False.
+            is_progress (bool, optional): 진행률 표시 여부. Defaults to False.
         """
         self.__strategy_config = strategy_config
         self.__strategy: Strategy = strategy(config=strategy_config)
@@ -37,18 +40,21 @@ class Engine:
         self.__account = Account(is_live=is_live, balance=initial_margin)
         self.__broker = Broker(self.__account, market_info)  # 거래 실행 모듈 계좌 사용
         self.__logger = Logger()  # 백테스팅 정보 로깅
+        self.__is_progress = is_progress
 
     def run(self, ticker_name: str = "KRW-AVAX"):
         iterator = self.__df.iter_rows()
         cols: List[
             Literal["Date", "high", "open", "close", "low", "volume", "value"]
         ] = self.__df.columns
-
-        pbar = tqdm(total=len(self.__df), desc="백테스팅 진행률")
+        if self.__is_progress:
+            pbar = tqdm(total=len(self.__df), desc="백테스팅 진행률")
         for i, data in enumerate(iterator):
-            pbar.update(1)
+            if self.__is_progress:
+                pbar.update(1)
             if i == len(self.__df) - 1:
-                pbar.close()
+                if self.__is_progress:
+                    pbar.close()
             data = dict(zip(cols, data))
 
             # 미체결 주문 처리(이전 data에서 주문 넣고, 현재 data로 처리되므로 미래시점 체결)
@@ -76,7 +82,7 @@ class Engine:
             # Logger에 필요한 정보 넣기(거래 내역 및 잔고 등)
             self.__logger.add_info(self.__account.info(), data["Date"])
 
-    def get_result(self, file_name: Optional[str] = None):
+    def get_result(self, file_name: Optional[str] = None) -> Optional[Dict[str, float]]:
         # 서브플롯 생성
         fig, (ax1, ax3) = plt.subplots(2, 1, figsize=(20, 12), height_ratios=[2, 1])
         fig.subplots_adjust(hspace=0.3)
@@ -130,6 +136,24 @@ class Engine:
         )
         ax3.legend(loc="upper left")
         if file_name is not None:
-            plt.savefig(file_name)
+            # plt.savefig(f"data/{file_name}")
+            cummax = self.__logger.evaluation.select(
+                pl.col("총 평가").cum_max()
+            ).get_column("총 평가")
+            drawdown = (
+                (self.__logger.evaluation["총 평가"] - cummax) / cummax * 100
+            ).alias("drawdown")
+            mdd = abs(
+                self.__logger.evaluation.with_columns(drawdown)
+                .get_column("drawdown")
+                .min()
+            )
+
+            return {
+                "file_name": f"data/{file_name}",
+                "last_value": self.__logger.evaluation["총 평가"].tail(1).item(),
+                "mdd": mdd,
+            }
         else:
             plt.show()
+            return None

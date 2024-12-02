@@ -166,3 +166,5 @@ cython_debug/
 test*.py
 !trading/strategy/test*.py
 data/*.parquet
+data/*.png
+data/*.json

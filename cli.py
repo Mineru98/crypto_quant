@@ -121,6 +121,7 @@ class Backtest:
                 strategy_config={"short_ma": 5, "long_ma": 20},
                 market_info={"slippage": 0.01, "fee": 0.0005},
                 initial_margin=1000000.0,
+                is_progress=True,
             )
             engine.run(ticker_name=tn)
             engine.get_result()
