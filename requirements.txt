@@ -1,12 +1,9 @@
 pyupbit==0.2.34
 pyjwt==2.9.0
 python-dotenv==1.0.0
-backtrader==1.9.78.123
 matplotlib==3.9.2
 fire==0.6.0
 tqdm==4.66.5
-redis==5.1.0
-pyspark==3.5.0
 streamlit==1.38.0
 koreanize-matplotlib==0.1.1
 groq
