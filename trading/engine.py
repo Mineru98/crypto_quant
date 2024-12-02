@@ -1,4 +1,4 @@
-from typing import Dict, List, Literal
+from typing import Dict, List, Literal, Optional
 
 import koreanize_matplotlib
 import matplotlib.pyplot as plt
@@ -76,7 +76,7 @@ class Engine:
             # Logger에 필요한 정보 넣기(거래 내역 및 잔고 등)
             self.__logger.add_info(self.__account.info(), data["Date"])
 
-    def get_result(self):
+    def get_result(self, file_name: Optional[str] = None):
         # 서브플롯 생성
         fig, (ax1, ax3) = plt.subplots(2, 1, figsize=(20, 12), height_ratios=[2, 1])
         fig.subplots_adjust(hspace=0.3)
@@ -129,5 +129,7 @@ class Engine:
             plt.FuncFormatter(lambda x, p: format(int(x), ","))
         )
         ax3.legend(loc="upper left")
-
-        plt.show()
+        if file_name is not None:
+            plt.savefig(file_name)
+        else:
+            plt.show()
